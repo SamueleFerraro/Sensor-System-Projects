@@ -14,11 +14,6 @@
   * If no LICENSE file comes with this software, it is provided AS-IS.
   *
   ******************************************************************************
-  * GOAL:
-  * Read the temperature measured by the LM75 and send it to a remote terminal 
-  * every 1 second. Read all 11 bits (positive or negative values) 
-  * within an interrupt.
-  *
   */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
@@ -36,8 +31,9 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define STR_LEN 16
-#define NUM_TMP 2
+#define DATA_IN_DIM 5
+#define STR_LEN 32
+#define NUM_COOR 3
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -48,7 +44,6 @@
 /* Private variables ---------------------------------------------------------*/
 I2C_HandleTypeDef hi2c1;
 DMA_HandleTypeDef hdma_i2c1_rx;
-DMA_HandleTypeDef hdma_i2c1_tx;
 
 TIM_HandleTypeDef htim2;
 
@@ -56,21 +51,29 @@ UART_HandleTypeDef huart2;
 DMA_HandleTypeDef hdma_usart2_tx;
 
 /* USER CODE BEGIN PV */
-/*The termometer used is a smart sensor*/
-/*Here I am going to save the 2 bytes coming from the thermometer */
-uint8_t tmp[NUM_TMP] = {0,0};
+uint8_t slave_add1  = 0b01010000; //The correct address of my board (tested in an other project)
 
-uint16_t tmp2 = 0;
+// uint8_t slave_add12 = 0b0011000; is the other possible one for other boards
 
-float tx_tmp = 0.0;
-/*String for UART transmission*/
-char string[STR_LEN] = "\n";
-int length = 0;
+// register address of the accelerometer. MSB = 1 for the autoincrement (PAG 22 Datasheet)
+uint8_t reg_add_x = 0b10101001;
 
-/*Address of the thermometer, left shifted by one (a 0 added at the right)*/
-uint8_t slave_add = 0b10010000;
-/*internal register address of the thermometer*/
-uint8_t reg_add = 0x00;
+/*ctrl_reg1[0] = address of the internal CTRL_REG1, ctrl_reg1[1]: Configuration meant for my application:
+ * 0001 =  1 Hz refresh rate of the Accelerometer, 0111 = reading X,Y and Z coordinates*/
+uint8_t ctrl_reg1[2] = {0x20 , 0b00010111};
+
+//Using the autoincrement I must copy the structure of the registers: {X, -- , Y, --, Z}
+int8_t axel_out_data[5] = {0,0,0,0,0};
+
+float coor[NUM_COOR] = {0, 0, 0};
+
+/*For analog string*/
+char string1[STR_LEN] = "\n";
+int length1 = 0;
+
+/*for digital string*/
+char string2[STR_LEN] = "\n";
+int length2 = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -87,34 +90,30 @@ static void MX_TIM2_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
-//[1 0 1 0 0 1 0 1] [1 0 0 0 0 0 0 0]
 /*Every second (TIM2)*/
 void HAL_TIM_PeriodElapsedCallback (TIM_HandleTypeDef *htim){
-		if(htim==&htim2){
+	if(htim==&htim2){
 
-			/*Here I read the data and check if they are ok*/
-			/*Parameters: (which I2C, which slave address, where to save, how big is the size of the data) */
-			/*The slave address is 7 bit long; the 8th bit is a Read or Write bit: READ=1 and WRITE=0.
-			 * That is why I have Slave address + 1 */
-			if(HAL_I2C_Master_Receive_DMA(&hi2c1, slave_add + 1,  &tmp, sizeof(tmp)) == HAL_OK){
+		/*receive the 3 axis axel digital data in multiple
+		 * read mode (slave_add + 1 to read (READ=1 WRITE=0))*/
+		HAL_I2C_Master_Receive_DMA(&hi2c1, slave_add1+1,  axel_out_data, sizeof(axel_out_data));
 
-				/*Here I merge the 2 bytes in a variable: MSBs (temp[0]) are shifted to the right
-				 * while LSBs (tmp[1]) are summed*/
-				tmp2 = (tmp[0] << 8) + tmp[1];
+		/*Converting in analag values (g)*/
+		//64 is the measured value for 1 g applied on the board (measured using string2)
+		coor[0]= axel_out_data[0]/64.0;
+		coor[1]= axel_out_data[2]/64.0;
+		coor[2]= axel_out_data[4]/64.0;
 
-				/*Conversion to Floating point*/
-				tx_tmp = tmp2/256.0;
-				/*Preparing the string for UART*/
-				length = snprintf(string, STR_LEN, "TMP: %.3f \n", tx_tmp);
+		length1 = snprintf(string1, STR_LEN, "X:%.3f, Y:%.3f, Z:%.3f\n", coor[0],coor[1],coor[2]);
 
-			}else{
-				length = snprintf(string, STR_LEN, "ERROR \n");
-			}
-			HAL_UART_Transmit_DMA(&huart2, string, length);
+		//length2 = snprintf(string2, STR_LEN, "X dig:%d, Y dig:%d, Z dig:%d\n", axel_out_data[0],axel_out_data[2],axel_out_data[4]);
+
+
+		HAL_UART_Transmit_DMA(&huart2, string1, length1);
+		//HAL_UART_Transmit_DMA(&huart2, string2, length2);
+
 	}
 }
-
-
 /* USER CODE END 0 */
 
 /**
@@ -152,15 +151,17 @@ int main(void)
   MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
 
-  /* Here I Write on the thermometer the pointer to the internal register
-   *  address that I want to read*/
-  /*Parameters: (which I2C, which slave address, what to write, how big is the size of the data) */
-  HAL_I2C_Master_Transmit_DMA(&hi2c1, slave_add+0, &reg_add, 1);
+  //set CTRL_REG1 (+0 to write)
+   HAL_I2C_Master_Transmit(&hi2c1, slave_add1 + 0, ctrl_reg1, sizeof(ctrl_reg1), 10);
 
-  __HAL_TIM_SET_COUNTER(&htim2, 0); //resetting counter of the timer
+   /*set sub-address to read axel data: it starts from the x-axis register, which have been set
+    * with MSB=1 in order to enable the autoincrement*/
+   HAL_I2C_Master_Transmit(&hi2c1, slave_add1, &reg_add_x, sizeof(reg_add_x), 10);
+
+  __HAL_TIM_SET_COUNTER(&htim2, 0);
   __HAL_TIM_CLEAR_IT(&htim2, TIM_IT_UPDATE);	// clear interrupt request BEFORE enabling tim interrupt
-
   HAL_TIM_Base_Start_IT(&htim2);
+
 
   /* USER CODE END 2 */
 
@@ -349,9 +350,6 @@ static void MX_DMA_Init(void)
   /* DMA1_Stream6_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA1_Stream6_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA1_Stream6_IRQn);
-  /* DMA1_Stream7_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(DMA1_Stream7_IRQn, 0, 0);
-  HAL_NVIC_EnableIRQ(DMA1_Stream7_IRQn);
 
 }
 
