@@ -1,6 +1,0 @@
-Read the temperature
-measured by the LM75
-and send it to a remote terminal
-every 1 second.
-read all 11 bits within an interrupt
-routine
