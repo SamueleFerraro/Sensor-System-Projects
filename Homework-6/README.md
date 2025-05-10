@@ -1,11 +1,5 @@
-b)GOAL:  * acquire LDR resistance value every ms and to send its average value to a
-  * remote terminal every 1s. Convert the resistance value to a lux level and
-  * send that to the remote terminal.
+# Homework 6 – Periodic Sensor Acquisition with Timer-Triggered ADC and UART Output
 
-
-b) GOAL:
-  * Acquire 3 voltages (potentiometer, temperature sensor, Vref)
-  * every 1 s and to send them to a remote terminal.
-  * The acquisition are started via hardware by a timer
-  * and data are saved in the microcontroller memory using DMA.
+- **Part a**: Samples LDR resistance every 1 ms using timer-triggered ADC with circular DMA. Samples are split into two halves to allow processing between acquisitions. The average is computed every 1 s, converted to lux, and sent to a remote terminal.  
+- **Part b**: Acquires voltages from a potentiometer, temperature sensor, and Vref every 1 s using timer-triggered ADC with circular DMA, and sends the values to a remote terminal.
 
