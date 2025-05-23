@@ -1,15 +1,6 @@
 # Sensor System Projects
 
-This repository contains a collection of embedded firmware projects developed for the **Sensor Systems** course at **Politecnico di Milano**. :contentReference[oaicite:0]{index=0} The course focuses on interfacing sensors, signal acquisition, and embedded system design using STM32 microcontrollers.
-
-## Partecipants
- - Francesco Samuele Fumagalli
- - [Samuele Ferraro](https://github.com/SamueleFerraro)
- - Federico Pierfederici
- - [Stefano Piombo](https://github.com/stepiombo)
- - [Samuele Zenoni](https://github.com/SamueleZenoni)
-
-This repository represents a group project for the Sensor Systems course. While all commits are under my GitHub account, the work was a collaborative effort among all group members. The commit history does not reflect the individual contributions accurately.
+This repository contains a collection of embedded firmware projects developed for the **Sensor Systems** course at **Politecnico di Milano**. The course focuses on interfacing sensors, signal acquisition, and embedded system design using STM32 microcontrollers.
 
 ## Project Overview
 
@@ -30,5 +21,12 @@ The projects are organized by homework assignments, each targeting specific aspe
 
 The projects are designed to run on a custom STM32-based microcontroller board with integrated peripherals, provided by the course instructors. A "Peripherals.md` file is included in the repository, detailing the pin assignments and connected peripherals.
 
+## Partecipants
+ - Francesco Samuele Fumagalli
+ - [Samuele Ferraro](https://github.com/SamueleFerraro)
+ - Federico Pierfederici
+ - [Stefano Piombo](https://github.com/stepiombo)
+ - [Samuele Zenoni](https://github.com/SamueleZenoni)
 
+This repository represents a group project for the Sensor Systems course. While all commits are under my GitHub account, the work was a collaborative effort among all group members. The commit history does not reflect the individual contributions accurately.
 
