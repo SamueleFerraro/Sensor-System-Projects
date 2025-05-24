@@ -22,9 +22,9 @@ The projects are organized by homework assignments, each targeting specific aspe
 The projects are designed to run on a custom STM32-based microcontroller board with integrated peripherals, provided by the course instructors. A "Peripherals.md` file is included in the repository, detailing the pin assignments and connected peripherals.
 
 ## Partecipants
- - Francesco Samuele Fumagalli
+ - [Francesco Samuele Fumagalli](https://github.com/Francesco871)
  - [Samuele Ferraro](https://github.com/SamueleFerraro)
- - Federico Pierfederici
+ - [Federico Pierfederici](https://github.com/Bobo115-cyber)
  - [Stefano Piombo](https://github.com/stepiombo)
  - [Samuele Zenoni](https://github.com/SamueleZenoni)
 
