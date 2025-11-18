@@ -19,7 +19,7 @@ The projects are organized by homework assignments, each targeting specific aspe
 
 ## Hardware Platform
 
-The projects are designed to run on a custom STM32-based microcontroller board with integrated peripherals, provided by the course instructors. A "Peripherals.md` file is included in the repository, detailing the pin assignments and connected peripherals.
+The projects are designed to run on a custom STM32-based microcontroller board with integrated peripherals, provided by the course instructors. A [`Peripherals.md`](Peripherals.md) file is included in the repository, detailing the pin assignments and connected peripherals.
 
 ## Partecipants
  - [Francesco Samuele Fumagalli](https://github.com/Francesco871)
